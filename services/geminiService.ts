@@ -1,9 +1,24 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
+const STORAGE_KEY = 'gemini_api_key';
+
+export const getStoredApiKey = (): string | null => {
+  // Priority: 1. Environment Variable (Build time) 2. Local Storage (Runtime)
+  return process.env.API_KEY || localStorage.getItem(STORAGE_KEY) || null;
+};
+
+export const setStoredApiKey = (key: string) => {
+  if (key) {
+    localStorage.setItem(STORAGE_KEY, key);
+  } else {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+};
+
 const getAiClient = () => {
-  const apiKey = process.env.API_KEY;
+  const apiKey = getStoredApiKey();
   if (!apiKey) {
-    throw new Error("API Key is missing. Please set it in the environment.");
+    throw new Error("API Key is missing. Please configure it in settings.");
   }
   return new GoogleGenAI({ apiKey });
 };

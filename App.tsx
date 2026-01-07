@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, HelpCircle, Grid, Book, Command, Palette, Check, FlaskConical } from 'lucide-react';
+import { Plus, Search, HelpCircle, Grid, Book, Command, Palette, Check, FlaskConical, Key, ShieldAlert } from 'lucide-react';
 import PromptCard from './components/PromptCard';
 import CreatePrompt from './components/CreatePrompt';
 import PromptDictionary from './components/PromptDictionary';
 import ToolsLab from './components/ToolsLab';
 import AdviceModal from './components/AdviceModal';
+import ApiKeyModal from './components/ApiKeyModal';
 import { PromptData, ViewState, ModifierCategory, RatioOption, Theme } from './types';
 import { INITIAL_PROMPTS, CATEGORIES, INITIAL_MODIFIERS, DEFAULT_STYLES, DEFAULT_RATIOS, THEMES } from './constants';
+import { getStoredApiKey } from './services/geminiService';
 
 function App() {
   const [view, setView] = useState<ViewState>('gallery');
@@ -24,11 +26,17 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isAdviceOpen, setIsAdviceOpen] = useState(false);
-  const [apiKeyError, setApiKeyError] = useState(false);
+  
+  // API Key Management
+  const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
+  const [forceKeyModal, setForceKeyModal] = useState(false);
 
   useEffect(() => {
-     if (!process.env.API_KEY) {
-         setApiKeyError(true);
+     // Check for API Key on mount
+     const key = getStoredApiKey();
+     if (!key) {
+         setForceKeyModal(true);
+         setIsKeyModalOpen(true);
      }
   }, []);
 
@@ -112,6 +120,15 @@ function App() {
 
             {/* Right Actions */}
             <div className="flex items-center gap-4">
+
+                {/* API Key Settings */}
+               <button 
+                    onClick={() => { setForceKeyModal(false); setIsKeyModalOpen(true); }}
+                    className="w-8 h-8 rounded-full border border-border/10 flex items-center justify-center text-muted hover:text-primary transition-colors hover:bg-main/5"
+                    title="API Key Settings"
+                >
+                    <Key size={16} />
+               </button>
                
                {/* Theme Switcher */}
                <div className="relative">
@@ -148,12 +165,6 @@ function App() {
                     </>
                   )}
                </div>
-
-               {apiKeyError && (
-                 <span className="text-red-400 text-[10px] font-medium px-2 py-0.5 bg-red-500/10 rounded-full border border-red-500/20 tracking-wide uppercase">
-                   Missing Key
-                 </span>
-               )}
               
               <button
                 onClick={() => setView(view === 'create' ? 'gallery' : 'create')}
@@ -265,6 +276,13 @@ function App() {
       </main>
 
       <AdviceModal isOpen={isAdviceOpen} onClose={() => setIsAdviceOpen(false)} />
+      
+      {/* API Key Modal */}
+      <ApiKeyModal 
+        isOpen={isKeyModalOpen} 
+        onClose={() => setIsKeyModalOpen(false)} 
+        forceOpen={forceKeyModal} 
+      />
     </div>
   );
 }
