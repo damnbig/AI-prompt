@@ -62,8 +62,6 @@ function App() {
   };
 
   const handleDeletePrompt = (id: string) => {
-      // Logic moved to component or simplified here. 
-      // The component will handle the "Are you sure" UI, here we just execute.
       const newPrompts = prompts.filter(p => p.id !== id);
       setPrompts(newPrompts);
       setSelectedPrompt(null); // Close modal immediately
@@ -248,15 +246,35 @@ function App() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         
         {view === 'gallery' && (
-          <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            {/* Hero */}
-            <div className="text-center max-w-2xl mx-auto space-y-4 pt-8">
-              <h1 className="text-5xl font-semibold text-main tracking-tighter pb-2">
-                为想象力而生。
-              </h1>
-              <p className="text-muted text-lg font-light tracking-wide leading-relaxed">
-                精选 AI 提示词库。经过打磨、分类，随时准备点燃你的创作火花。
-              </p>
+          <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Retro Apple Aesthetic Hero Section */}
+            <div className="relative text-center max-w-4xl mx-auto pt-16 pb-8 px-4">
+                {/* 1. The Retro Rainbow Bar (Subtle Homage) */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 flex h-1.5 w-24 rounded-full overflow-hidden opacity-90 shadow-sm">
+                    <div className="flex-1 bg-[#61BB46]"></div> {/* Green */}
+                    <div className="flex-1 bg-[#FDB827]"></div> {/* Yellow */}
+                    <div className="flex-1 bg-[#F5821F]"></div> {/* Orange */}
+                    <div className="flex-1 bg-[#E03A3E]"></div> {/* Red */}
+                    <div className="flex-1 bg-[#963D97]"></div> {/* Purple */}
+                    <div className="flex-1 bg-[#009DDC]"></div> {/* Blue */}
+                </div>
+
+                {/* 2. The Headline - Retro Rainbow Text */}
+                <h1 className="font-serif text-6xl md:text-8xl font-medium tracking-tighter text-main mb-6 leading-[1.05]">
+                    Think
+                    <span className="italic ml-4 inline-block bg-clip-text text-transparent bg-gradient-to-r from-[#61BB46] via-[#FDB827] via-[#F5821F] via-[#E03A3E] via-[#963D97] to-[#009DDC]">
+                        Visual.
+                    </span>
+                </h1>
+
+                {/* 3. The Copy */}
+                <p className="font-sans text-lg md:text-xl text-muted font-light leading-relaxed max-w-2xl mx-auto">
+                    这里是「思维的自行车」。<br/>
+                    我们不做简单的堆砌，只甄选那些能让机器产生灵魂震颤的咒语。<br/>
+                    <span className="opacity-60 text-sm mt-3 block font-mono">从混沌到秩序，只差一行优雅的代码。</span>
+                </p>
+                
+                {/* 4. Footer Tagline REMOVED */}
             </div>
 
             {/* Search Bar & Filters */}
