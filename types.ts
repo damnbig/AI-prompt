@@ -8,7 +8,8 @@ export interface PromptData {
   imageUrl: string;
   modelUsed?: string;
   aspectRatio?: string;
-  likes: number;
+  likes: number; // Kept for legacy compatibility, but UI will use bookmark logic
+  isBookmarked?: boolean; // New field for collections
   author: string;
   createdAt: number;
 }
@@ -57,13 +58,19 @@ export interface Theme {
   }
 }
 
+// Updated to support Bilingual Analysis
+export interface AnalysisItem {
+  en: string;
+  zh: string;
+}
+
 export interface PromptAnalysisResult {
-  subject: string[];
-  style: string[];
-  medium: string[];
-  lighting: string[];
-  camera: string[];
-  artists: string[];
-  colorPalette: string[];
-  additionalDetails: string[];
+  subject: AnalysisItem[];
+  style: AnalysisItem[];
+  medium: AnalysisItem[];
+  lighting: AnalysisItem[];
+  camera: AnalysisItem[];
+  artists: AnalysisItem[];
+  colorPalette: AnalysisItem[];
+  additionalDetails: AnalysisItem[];
 }

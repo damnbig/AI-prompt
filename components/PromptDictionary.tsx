@@ -75,15 +75,15 @@ const PromptDictionary: React.FC<PromptDictionaryProps> = ({ categories, setCate
 
   const handleAddCategory = () => {
     const id = Date.now().toString();
-    const newCat: ModifierCategory = { id, name: 'New Folder', modifiers: [] };
+    const newCat: ModifierCategory = { id, name: '新建文件夹', modifiers: [] };
     setCategories([...categories, newCat]);
     setSelectedCatId(id);
-    setNewCatName('New Folder');
+    setNewCatName('新建文件夹');
     setIsEditingCat(true);
   };
 
   const handleDeleteCategory = (id: string) => {
-    if (confirm('Delete this folder and all prompts inside?')) {
+    if (confirm('确定删除此文件夹及其中所有内容吗？')) {
       const newCats = categories.filter(c => c.id !== id);
       setCategories(newCats);
       if (selectedCatId === id) setSelectedCatId(newCats[0]?.id || '');
@@ -115,7 +115,7 @@ const PromptDictionary: React.FC<PromptDictionaryProps> = ({ categories, setCate
       {/* Sidebar: MacOS Finder Style */}
       <div className="w-64 border-r border-border/10 bg-surface/30 flex flex-col backdrop-blur-sm">
         <div className="p-4 flex justify-between items-center opacity-80">
-          <span className="text-xs font-semibold text-muted uppercase tracking-widest pl-2">Library</span>
+          <span className="text-xs font-semibold text-muted uppercase tracking-widest pl-2">本地词库</span>
           <button onClick={handleAddCategory} className="text-muted hover:text-main transition-colors p-1"><Plus size={16} /></button>
         </div>
         
@@ -164,7 +164,7 @@ const PromptDictionary: React.FC<PromptDictionaryProps> = ({ categories, setCate
               
               <div className="flex gap-2">
                  <button onClick={() => setIsAddingTag(true)} className="flex items-center gap-2 px-3 py-1.5 bg-main text-page rounded-lg text-xs font-semibold hover:opacity-90 transition-colors shadow-sm">
-                    <Plus size={14} /> Add Prompt
+                    <Plus size={14} /> 添加提示词
                  </button>
                  <button onClick={() => handleDeleteCategory(selectedCategory.id)} className="p-2 text-muted hover:text-red-400 transition-colors"><Trash2 size={16} /></button>
               </div>
@@ -177,21 +177,21 @@ const PromptDictionary: React.FC<PromptDictionaryProps> = ({ categories, setCate
                     <div className="bg-surface border border-primary/50 rounded-xl p-4 shadow-lg animate-in zoom-in-95">
                         <div className="space-y-3">
                             <input 
-                                placeholder="Chinese Name..."
+                                placeholder="中文名称 (如：赛博朋克)"
                                 value={newTagZh}
                                 onChange={e => setNewTagZh(e.target.value)}
                                 className="w-full bg-page border border-border/10 rounded-lg p-2 text-sm text-main outline-none focus:border-primary"
                                 autoFocus
                             />
                             <input 
-                                placeholder="English Prompt..."
+                                placeholder="英文 Prompt..."
                                 value={newTagEn}
                                 onChange={e => setNewTagEn(e.target.value)}
                                 className="w-full bg-page border border-border/10 rounded-lg p-2 text-sm text-muted font-mono outline-none focus:border-primary"
                             />
                             <div className="flex justify-end gap-2 pt-1">
-                                <button onClick={() => setIsAddingTag(false)} className="text-xs text-muted hover:text-main px-2">Cancel</button>
-                                <button onClick={handleAddTag} className="text-xs bg-primary text-white px-3 py-1 rounded hover:opacity-90">Save</button>
+                                <button onClick={() => setIsAddingTag(false)} className="text-xs text-muted hover:text-main px-2">取消</button>
+                                <button onClick={handleAddTag} className="text-xs bg-primary text-white px-3 py-1 rounded hover:opacity-90">保存</button>
                             </div>
                         </div>
                     </div>
@@ -211,7 +211,7 @@ const PromptDictionary: React.FC<PromptDictionaryProps> = ({ categories, setCate
           <div className="flex-1 flex items-center justify-center text-muted">
              <div className="text-center">
                  <Folder size={48} className="mx-auto mb-4 opacity-20" />
-                 <p className="text-sm font-medium">Select a folder</p>
+                 <p className="text-sm font-medium">请选择左侧分类</p>
              </div>
           </div>
         )}

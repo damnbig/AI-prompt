@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="zh-CN" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PromptVerse - Pro</title>
+    <title>PromptVerse - 专业 AI 提示词工作台</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script>
@@ -12,18 +12,23 @@
         theme: {
           extend: {
             fontFamily: {
-              sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'San Francisco', 'Helvetica Neue', 'sans-serif'],
+              sans: ['Inter', 'PingFang SC', 'Microsoft YaHei', 'ui-sans-serif', 'system-ui', 'sans-serif'],
               mono: ['JetBrains Mono', 'Menlo', 'Monaco', 'Courier New', 'monospace'],
             },
             colors: {
+              // Semantic Colors mapped to CSS Variables
               page: 'rgb(var(--c-page) / <alpha-value>)',
               surface: 'rgb(var(--c-surface) / <alpha-value>)',
               elevated: 'rgb(var(--c-elevated) / <alpha-value>)',
+              
               main: 'rgb(var(--c-text-main) / <alpha-value>)',
               muted: 'rgb(var(--c-text-muted) / <alpha-value>)',
+              
               border: 'rgb(var(--c-border) / <alpha-value>)',
+              
               primary: {
                 DEFAULT: 'rgb(var(--c-accent) / <alpha-value>)',
+                // Map legacy shades to same variable for safety, relying on opacity
                 50: 'rgb(var(--c-accent) / 0.1)',
                 500: 'rgb(var(--c-accent) / 1.0)', 
                 600: 'rgb(var(--c-accent) / 0.9)', 
@@ -42,6 +47,7 @@
     </script>
     <style>
       body {
+        /* Defaults handled in App.tsx via style injection */
         background-color: rgb(var(--c-page)); 
         color: rgb(var(--c-text-main));
         transition: background-color 0.5s ease, color 0.5s ease;
@@ -49,14 +55,51 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
-      ::-webkit-scrollbar { width: 10px; height: 10px; }
-      ::-webkit-scrollbar-track { background: transparent; }
-      ::-webkit-scrollbar-thumb { background: rgba(128, 128, 128, 0.2); border-radius: 9999px; border: 3px solid transparent; background-clip: content-box; }
-      ::-webkit-scrollbar-thumb:hover { background: rgba(128, 128, 128, 0.4); border: 3px solid transparent; background-clip: content-box; }
-      .glass-panel { background: rgb(var(--c-surface) / 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgb(var(--c-border) / 0.1); }
-      .glass-nav { background: rgb(var(--c-page) / 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgb(var(--c-border) / 0.1); }
-      @keyframes spotlight { 0% { opacity: 0.3; transform: scale(0.9); } 50% { opacity: 0.5; transform: scale(1.1); } 100% { opacity: 0.3; transform: scale(0.9); } }
-      .animate-spotlight { animation: spotlight 8s infinite ease-in-out; }
+      
+      /* Apple-style Scrollbar */
+      ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(128, 128, 128, 0.2);
+        border-radius: 9999px;
+        border: 3px solid transparent;
+        background-clip: content-box;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(128, 128, 128, 0.4);
+        border: 3px solid transparent;
+        background-clip: content-box;
+      }
+
+      /* Glassmorphism Utilities */
+      .glass-panel {
+        background: rgb(var(--c-surface) / 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgb(var(--c-border) / 0.1);
+      }
+      
+      .glass-nav {
+        background: rgb(var(--c-page) / 0.8);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgb(var(--c-border) / 0.1);
+      }
+
+      /* Subtle Spotlight Animation */
+      @keyframes spotlight {
+        0% { opacity: 0.3; transform: scale(0.9); }
+        50% { opacity: 0.5; transform: scale(1.1); }
+        100% { opacity: 0.3; transform: scale(0.9); }
+      }
+      .animate-spotlight {
+        animation: spotlight 8s infinite ease-in-out;
+      }
     </style>
   <script type="importmap">
 {
@@ -72,6 +115,5 @@
 </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
   </body>
 </html>

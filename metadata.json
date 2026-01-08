@@ -1,5 +1,5 @@
 {
-  "name": "PromptVerse - AI Prompt Repository",
-  "description": "A comprehensive AI art prompt repository and generator. Features a visually stunning gallery, AI-powered prompt enhancement, and instant image preview generation using Gemini.",
+  "name": "PromptVerse - AI 提示词宇宙",
+  "description": "全能型 AI 艺术提示词库与生成器。拥有视觉震撼的画廊、AI 驱动的提示词润色引擎，以及基于 Gemini 的即时图像预览功能。",
   "requestFramePermissions": []
 }

@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { Copy, Check, Heart, Languages } from 'lucide-react';
+import { Copy, Check, Bookmark, Languages } from 'lucide-react';
 import { PromptData } from '../types';
 
 interface PromptCardProps {
   data: PromptData;
   onCopy: (text: string) => void;
+  onToggleBookmark: (id: string) => void;
+  onClick: () => void;
 }
 
-const PromptCard: React.FC<PromptCardProps> = ({ data, onCopy }) => {
+const PromptCard: React.FC<PromptCardProps> = ({ data, onCopy, onToggleBookmark, onClick }) => {
   const [copied, setCopied] = useState(false);
-  const [liked, setLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(data.likes);
   const [showChinese, setShowChinese] = useState(true);
 
   const handleCopy = (e: React.MouseEvent) => {
@@ -20,16 +20,18 @@ const PromptCard: React.FC<PromptCardProps> = ({ data, onCopy }) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleLike = (e: React.MouseEvent) => {
+  const handleBookmark = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setLiked(!liked);
-    setLikesCount(prev => liked ? prev - 1 : prev + 1);
+    onToggleBookmark(data.id);
   };
 
   return (
-    <div className="group relative break-inside-avoid mb-6 bg-surface border border-border/10 rounded-2xl overflow-hidden hover:border-border/20 transition-all duration-500 hover:shadow-2xl hover:shadow-black/20 hover:-translate-y-1">
+    <div 
+        onClick={onClick}
+        className="group relative break-inside-avoid mb-6 bg-surface border border-border/10 rounded-2xl overflow-hidden hover:border-border/20 transition-all duration-500 hover:shadow-2xl hover:shadow-black/20 hover:-translate-y-1 cursor-zoom-in"
+    >
       {/* Image Container - The Hero */}
-      <div className="relative overflow-hidden cursor-pointer" onClick={handleCopy}>
+      <div className="relative overflow-hidden">
         <img 
           src={data.imageUrl} 
           alt={data.title} 
@@ -40,11 +42,12 @@ const PromptCard: React.FC<PromptCardProps> = ({ data, onCopy }) => {
         {/* Minimal Overlay Gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
         
-        {/* Floating Actions (Only visible on hover) */}
+        {/* Floating Actions (Visible on hover) */}
         <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-[-10px] group-hover:translate-y-0">
            <button 
                 onClick={(e) => { e.stopPropagation(); setShowChinese(!showChinese); }}
                 className="p-2 bg-black/50 backdrop-blur-md rounded-full text-white/80 hover:bg-white hover:text-black transition-all"
+                title="切换中英文"
            >
               <Languages size={14} />
            </button>
@@ -62,11 +65,11 @@ const PromptCard: React.FC<PromptCardProps> = ({ data, onCopy }) => {
               
               <div className="flex flex-col gap-2 items-end">
                   <button 
-                    onClick={handleLike}
-                    className="flex items-center gap-1.5 text-xs font-medium text-white/80 hover:text-red-400 transition-colors"
+                    onClick={handleBookmark}
+                    className={`flex items-center gap-1.5 p-2 rounded-full backdrop-blur-md transition-all ${data.isBookmarked ? 'bg-primary text-white' : 'bg-black/30 text-white/70 hover:bg-white hover:text-black'}`}
+                    title={data.isBookmarked ? "取消收藏" : "收藏"}
                   >
-                    <Heart size={14} fill={liked ? "#f87171" : "none"} className={liked ? "text-red-400" : ""} />
-                    {likesCount}
+                    <Bookmark size={14} fill={data.isBookmarked ? "currentColor" : "none"} />
                   </button>
               </div>
            </div>
@@ -87,7 +90,7 @@ const PromptCard: React.FC<PromptCardProps> = ({ data, onCopy }) => {
             className={`text-xs flex items-center gap-1.5 transition-colors ${copied ? 'text-primary' : 'text-muted hover:text-main'}`}
          >
             {copied ? <Check size={12} /> : <Copy size={12} />}
-            {copied ? 'Copied' : 'Copy'}
+            {copied ? '已复制' : '复制'}
          </button>
       </div>
     </div>

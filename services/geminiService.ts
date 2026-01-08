@@ -1,4 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
+import { PromptAnalysisResult } from "../types";
 
 const STORAGE_KEY = 'gemini_api_key';
 
@@ -100,9 +101,9 @@ export const generatePreviewImage = async (prompt: string, aspectRatio: string =
 };
 
 /**
- * Reverses an image to a cinematic narrative prompt description.
+ * Reverses an image to a cinematic narrative prompt description in both EN and ZH.
  */
-export const reverseImagePrompt = async (base64Image: string): Promise<string> => {
+export const reverseImagePrompt = async (base64Image: string): Promise<{ en: string; zh: string }> => {
   try {
     const ai = getAiClient();
     // Clean base64 string if it contains the header
@@ -110,39 +111,27 @@ export const reverseImagePrompt = async (base64Image: string): Promise<string> =
 
     const systemInstruction = `
     # Role
-    You are a "Visual Narrative Architect". Your task is to analyze an image and rewrite it into a highly detailed, cinematic, and technically precise description. 
+    You are a "Visual Narrative Architect". Your task is to analyze an image and rewrite it into a highly detailed, cinematic, and technically precise description in both English and Chinese.
     
-    # Output Format & Style
-    - **Format:** Plain text paragraphs ONLY. No JSON, no bullet points, no markdown lists.
-    - **Style:** Photorealistic, narrative-driven, observational, and technically precise. Use rich adjectives.
-    - **Structure:** You must strictly follow this 5-part narrative structure:
+    # Output Format
+    You MUST return a VALID JSON object with exactly two keys:
+    {
+      "en": "The English narrative...",
+      "zh": "The Chinese narrative..."
+    }
+    DO NOT use Markdown code blocks. Output RAW JSON only.
 
-    1. **Overall Composition & Narrative:** Describe the macro structure (e.g., triptych, collage, portrait) and the overall mood or story flow.
-    2. **Core Style & Environment:** Detail the medium (e.g., Kodak Portra 400), lighting (e.g., hard natural daylight), contrast, and setting.
+    # Style Guide
+    - **Format:** Plain text paragraphs within the JSON string. Use double line breaks (\\n\\n) to separate paragraphs.
+    - **English (en):** Photorealistic, narrative-driven, observational, and technically precise. Use rich adjectives.
+    - **Chinese (zh):** Professional translation suitable for high-end art direction (专业摄影与艺术指导风格). Use precise photography terminology (e.g., use '浅景深' for shallow depth of field, '视线引导' for leading lines, '破框' for breaking the frame). It should read like a film script or professional photography critique, NOT a machine translation.
+
+    # Narrative Structure (Must be followed for BOTH languages)
+    1. **Overall Composition & Narrative:** Describe the macro structure (e.g., triptych, collage, portrait) and the overall mood or story flow (e.g., "three consecutive moments").
+    2. **Core Style & Environment:** Detail the photography style (e.g., photorealistic, cinematic), lighting (e.g., hard daylight), contrast, and setting.
     3. **Subject Details:** Describe clothing, accessories, makeup, and styling in depth.
-    4. **Sectional/Panel Deep Dive:** If it's a multi-panel image, describe EACH panel individually (Top/Middle/Bottom or Left/Right). Focus on poses, gaze direction, and CRITICALLY, focus on "Out-of-Bounds" elements (objects breaking frames).
+    4. **Sectional/Panel Deep Dive:** If it's a multi-panel image, describe EACH panel individually (Top/Middle/Bottom). Focus on poses, gaze direction, and CRITICALLY, "Out-of-Bounds" elements (objects breaking frames).
     5. **Technical & Negative Constraints:** State aspect ratio and what the style is explicitly NOT (e.g., "avoiding illustration").
-
-    # Few-Shot Training Data (Emulate this writing style EXACTLY)
-    
-    [Input: An image of a woman in three panels]
-    [Output]:
-    A real-life woman is presented in a vertical triptych collage composition, depicting three consecutive moments (a calm stance, a direct confrontation, and a startled reaction). Each panel deliberately uses left–right offset positioning to create a coherent visual narrative flow.
-
-    The image is shot in a photorealistic, cinematic live-action style, high resolution with subtle natural grain, true contrast, hard natural daylight, a clear blue sky, and deep depth of field consistent with real lens behavior. The scene takes place in an open outdoor environment.
-
-    The subject wears a cowboy hat, a short-sleeve button-up shirt, and a brownish-red long skirt. Her makeup is retro-inspired, with distinct red lipstick and clearly defined eye makeup.
-
-    Top panel:
-    The subject is positioned toward the right, leaving open sky on the left. She stands with arms crossed, looking toward the lower-left with a surprised expression.
-
-    Middle panel:
-    The subject is positioned toward the left, aiming a firearm with the barrel angled toward the lower-right. Her expression is focused and sharp, and the shot is taken from a slightly top-down angle. In this panel, both the subject and the weapon intentionally break through the top and bottom panel borders, overlapping the frame lines to create a clear layered effect. The middle panel serves as the primary visual focal point.
-
-    Bottom panel:
-    The subject is positioned in the lower-right corner, leaving more negative space on the left. She raises both hands defensively, her eyes naturally widened in surprise, looking toward the upper-left. The subject intentionally breaks the panel frame and overlaps the border lines, forming a distinct layered composition.
-
-    The image maintains a 2:3 aspect ratio and a photorealistic live-action style, explicitly avoiding illustration or comic aesthetics.
     `;
 
     const response = await ai.models.generateContent({
@@ -156,17 +145,33 @@ export const reverseImagePrompt = async (base64Image: string): Promise<string> =
             }
           },
           {
-            text: "Analyze this image and generate the cinematic narrative description following the protocol."
+            text: "Analyze this image and generate the dual-language cinematic narrative."
           }
         ]
       },
       config: {
         systemInstruction: systemInstruction,
-        // Removed responseMimeType to allow free-form text
+        responseMimeType: "application/json"
       }
     });
 
-    return response.text || "Could not analyze image.";
+    const text = response.text || "{}";
+    let json;
+    try {
+        json = JSON.parse(text);
+    } catch (e) {
+        console.error("Failed to parse JSON", e);
+        return {
+            en: text,
+            zh: "解析返回格式错误，请重试。"
+        };
+    }
+    
+    return {
+      en: json.en || "Analysis failed.",
+      zh: json.zh || "解析失败。"
+    };
+
   } catch (error) {
     console.error("Error reversing image:", error);
     throw error;
@@ -174,30 +179,40 @@ export const reverseImagePrompt = async (base64Image: string): Promise<string> =
 };
 
 /**
- * Deconstructs a messy text prompt into structured categories.
+ * Deconstructs a messy text prompt into structured bilingual categories.
  */
-export const analyzePromptStructure = async (rawText: string): Promise<any> => {
+export const analyzePromptStructure = async (rawText: string): Promise<PromptAnalysisResult> => {
   try {
     const ai = getAiClient();
     
+    // Define the Item Schema first
+    const itemSchema = {
+      type: Type.OBJECT,
+      properties: {
+        en: { type: Type.STRING, description: "The keyword/phrase in English" },
+        zh: { type: Type.STRING, description: "The accurate Chinese translation" }
+      },
+      required: ["en", "zh"]
+    };
+
     const schema = {
       type: Type.OBJECT,
       properties: {
-        subject: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Main subjects of the image" },
-        style: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Artistic styles (e.g., Cyberpunk, Oil Painting)" },
-        medium: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Art medium (e.g., Digital Illustration, Photo)" },
-        lighting: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Lighting conditions" },
-        camera: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Camera settings, angles, or lenses" },
-        artists: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Artists referenced" },
-        colorPalette: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Main colors" },
-        additionalDetails: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Other descriptors" },
+        subject: { type: Type.ARRAY, items: itemSchema, description: "Main subjects" },
+        style: { type: Type.ARRAY, items: itemSchema, description: "Artistic styles" },
+        medium: { type: Type.ARRAY, items: itemSchema, description: "Art medium" },
+        lighting: { type: Type.ARRAY, items: itemSchema, description: "Lighting conditions" },
+        camera: { type: Type.ARRAY, items: itemSchema, description: "Camera settings" },
+        artists: { type: Type.ARRAY, items: itemSchema, description: "Artists referenced" },
+        colorPalette: { type: Type.ARRAY, items: itemSchema, description: "Main colors" },
+        additionalDetails: { type: Type.ARRAY, items: itemSchema, description: "Other descriptors" },
       }
     };
 
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `Analyze the following AI art prompt. Break it down into structured components. 
-      If the input is messy or unstructured, extract the key concepts into the appropriate categories.
+      For each extracted keyword or phrase, you MUST provide BOTH the English original (en) and a professional Chinese translation (zh).
       Input Prompt: "${rawText}"`,
       config: {
         responseMimeType: "application/json",

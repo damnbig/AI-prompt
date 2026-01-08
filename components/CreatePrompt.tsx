@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Wand2, Image as ImageIcon, Sparkles, Loader2, Save, Settings, Plus, X, Trash2, ChevronRight } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Wand2, Image as ImageIcon, Sparkles, Loader2, Save, Settings, Plus, X, Trash2, ChevronRight, UploadCloud, Type, Check } from 'lucide-react';
 import { enhancePrompt, generatePreviewImage } from '../services/geminiService';
 import { PromptData, RatioOption } from '../types';
 
@@ -20,14 +20,22 @@ const CreatePrompt: React.FC<CreatePromptProps> = ({
   availableRatios,
   setAvailableRatios
 }) => {
-  const [baseIdea, setBaseIdea] = useState('');
-  const [style, setStyle] = useState(availableStyles[0] || 'Photorealistic');
+  const [mode, setMode] = useState<'ai' | 'manual'>('ai');
+
+  // Common State
+  const [baseIdea, setBaseIdea] = useState(''); // Used as title in Manual
+  const [style, setStyle] = useState(availableStyles[0] || '真实感摄影');
   
+  // AI Mode State
   const [englishPrompt, setEnglishPrompt] = useState('');
   const [chinesePrompt, setChinesePrompt] = useState('');
-  
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  
+  // Manual Mode State
+  const [manualImage, setManualImage] = useState<string | null>(null);
+  
+  // Shared Result
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [aspectRatio, setAspectRatio] = useState<string>(availableRatios[0]?.value || '1:1');
 
@@ -35,6 +43,20 @@ const CreatePrompt: React.FC<CreatePromptProps> = ({
   const [manageMode, setManageMode] = useState<'style' | 'ratio' | null>(null);
   const [newItemValue, setNewItemValue] = useState('');
   const [newItemLabel, setNewItemLabel] = useState('');
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleManualImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setManualImage(reader.result as string);
+        setGeneratedImage(reader.result as string); // In manual mode, uploaded image IS the result
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleEnhance = async () => {
     if (!baseIdea) return;
@@ -44,7 +66,7 @@ const CreatePrompt: React.FC<CreatePromptProps> = ({
       setEnglishPrompt(result.englishPrompt);
       setChinesePrompt(result.chineseTranslation);
     } catch (e) {
-      alert("Enhancement failed. Check API Key.");
+      alert("优化失败，请检查 API Key。");
     } finally {
       setIsEnhancing(false);
     }
@@ -58,7 +80,7 @@ const CreatePrompt: React.FC<CreatePromptProps> = ({
       const imageUrl = await generatePreviewImage(promptToUse, aspectRatio);
       setGeneratedImage(imageUrl);
     } catch (e) {
-      alert("Generation failed. Check API Key.");
+      alert("生成失败，请检查 API Key。");
     } finally {
       setIsGenerating(false);
     }
@@ -66,14 +88,19 @@ const CreatePrompt: React.FC<CreatePromptProps> = ({
 
   const handleSave = () => {
     if (!generatedImage) return;
+    
+    // In Manual Mode, baseIdea is the Title. In AI mode, it's the idea.
+    const finalTitle = mode === 'manual' ? baseIdea : (baseIdea || "未命名创作");
+
     const newPrompt: PromptData = {
       id: Date.now().toString(),
-      title: baseIdea || "Untitled Creation",
-      promptText: englishPrompt || baseIdea,
-      promptTextZh: chinesePrompt || baseIdea,
+      title: finalTitle || "未命名创作",
+      promptText: englishPrompt || (mode === 'manual' ? "" : baseIdea), // In manual, user might leave en prompt empty if lazy, or we can add a field
+      promptTextZh: chinesePrompt || (mode === 'manual' ? "" : baseIdea),
       imageUrl: generatedImage,
-      tags: [style.toLowerCase(), 'generated'],
+      tags: [style.toLowerCase(), mode === 'manual' ? 'imported' : 'generated'],
       likes: 0,
+      isBookmarked: false,
       author: 'You',
       createdAt: Date.now(),
       aspectRatio
@@ -133,27 +160,104 @@ const CreatePrompt: React.FC<CreatePromptProps> = ({
         {/* Left: Configuration Panel */}
         <div className="lg:col-span-5 flex flex-col gap-6">
           <div className="glass-panel rounded-2xl p-6 flex-1 flex flex-col shadow-2xl">
-            <div className="flex items-center gap-3 mb-6 border-b border-border/10 pb-4">
-              <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                <Sparkles size={20} />
-              </div>
-              <h2 className="text-xl font-semibold text-main">Studio</h2>
+            
+            {/* Mode Toggle */}
+            <div className="flex items-center justify-between mb-6 border-b border-border/10 pb-4">
+               <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                    {mode === 'ai' ? <Sparkles size={20} /> : <UploadCloud size={20} />}
+                  </div>
+                  <h2 className="text-xl font-semibold text-main">
+                    {mode === 'ai' ? 'AI 创作工坊' : '手动入库'}
+                  </h2>
+               </div>
+               
+               <div className="flex bg-surface border border-border/10 rounded-lg p-1">
+                  <button 
+                    onClick={() => { setMode('ai'); setGeneratedImage(null); }}
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${mode === 'ai' ? 'bg-main text-page shadow-sm' : 'text-muted hover:text-main'}`}
+                  >
+                    AI 生成
+                  </button>
+                  <button 
+                    onClick={() => { setMode('manual'); setGeneratedImage(null); }}
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${mode === 'manual' ? 'bg-main text-page shadow-sm' : 'text-muted hover:text-main'}`}
+                  >
+                    手动导入
+                  </button>
+               </div>
             </div>
 
             <div className="space-y-6 flex-1 overflow-y-auto pr-2 custom-scrollbar">
-               {/* Core Input */}
-               <InputField 
-                 label="Core Concept" 
-                 value={baseIdea} 
-                 onChange={(e: any) => setBaseIdea(e.target.value)} 
-                 placeholder="Describe your imagination..." 
-               />
+               
+               {/* MODE: MANUAL IMPORT */}
+               {mode === 'manual' && (
+                 <>
+                    <div 
+                        onClick={() => fileInputRef.current?.click()}
+                        className={`border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all p-8 group ${manualImage ? 'border-primary/50 bg-primary/5' : 'border-border/20 hover:border-primary/30 hover:bg-main/5'}`}
+                    >
+                        <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleManualImageUpload} />
+                        <UploadCloud className="text-muted group-hover:text-primary mb-2 transition-colors" size={24} />
+                        <span className="text-xs text-muted group-hover:text-main transition-colors">点击上传图片 (JPG/PNG)</span>
+                    </div>
 
-               {/* Selectors */}
-               <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-4">
+                        <InputField label="标题" value={baseIdea} onChange={(e: any) => setBaseIdea(e.target.value)} placeholder="给你的作品起个名字..." rows={1} />
+                        <InputField label="中文提示词" value={chinesePrompt} onChange={(e: any) => setChinesePrompt(e.target.value)} placeholder="记录中文描述..." />
+                        <InputField label="英文提示词 (Prompt)" value={englishPrompt} onChange={(e: any) => setEnglishPrompt(e.target.value)} placeholder="Record the original English prompt..." />
+                    </div>
+                 </>
+               )}
+
+               {/* MODE: AI GENERATION */}
+               {mode === 'ai' && (
+                 <>
+                    <InputField 
+                        label="核心创意" 
+                        value={baseIdea} 
+                        onChange={(e: any) => setBaseIdea(e.target.value)} 
+                        placeholder="描述你想象中的画面..." 
+                    />
+
+                    {/* AI Action */}
+                    <button 
+                        onClick={handleEnhance}
+                        disabled={!baseIdea || isEnhancing}
+                        className="w-full py-3 bg-surface hover:bg-elevated text-main rounded-xl text-sm font-medium transition-all border border-border/10 flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm"
+                    >
+                        {isEnhancing ? <Loader2 className="animate-spin" size={16} /> : <Wand2 size={16} />}
+                        AI 智能润色与翻译
+                    </button>
+
+                     {/* Output Fields */}
+                    {(englishPrompt || isEnhancing) && (
+                        <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                            <div className="space-y-2">
+                            <label className="text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-2">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                                    优化后的提示词 (English)
+                            </label>
+                            <div className="bg-elevated border border-primary/20 rounded-xl p-4 text-sm text-main font-mono leading-relaxed shadow-inner">
+                                {englishPrompt || "AI 正在思考中..."}
+                            </div>
+                            </div>
+                            <div className="space-y-2">
+                            <label className="text-xs font-semibold text-muted uppercase tracking-wider">中文翻译</label>
+                            <div className="bg-surface border border-border/10 rounded-xl p-4 text-sm text-muted shadow-inner">
+                                {chinesePrompt || "正在翻译..."}
+                            </div>
+                            </div>
+                        </div>
+                    )}
+                 </>
+               )}
+
+               {/* SHARED SETTINGS */}
+               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border/10">
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                        <label className="text-xs font-semibold text-muted uppercase tracking-wider">Style</label>
+                        <label className="text-xs font-semibold text-muted uppercase tracking-wider">风格标签</label>
                         <button onClick={() => setManageMode('style')} className="text-muted hover:text-main transition-colors"><Settings size={12} /></button>
                     </div>
                     <div className="relative">
@@ -172,7 +276,7 @@ const CreatePrompt: React.FC<CreatePromptProps> = ({
 
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                        <label className="text-xs font-semibold text-muted uppercase tracking-wider">Ratio</label>
+                        <label className="text-xs font-semibold text-muted uppercase tracking-wider">比例</label>
                         <button onClick={() => setManageMode('ratio')} className="text-muted hover:text-main transition-colors"><Settings size={12} /></button>
                     </div>
                     <div className="relative">
@@ -190,47 +294,29 @@ const CreatePrompt: React.FC<CreatePromptProps> = ({
                   </div>
                </div>
 
-               {/* AI Action */}
-               <button 
-                  onClick={handleEnhance}
-                  disabled={!baseIdea || isEnhancing}
-                  className="w-full py-3 bg-surface hover:bg-elevated text-main rounded-xl text-sm font-medium transition-all border border-border/10 flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm"
-               >
-                  {isEnhancing ? <Loader2 className="animate-spin" size={16} /> : <Wand2 size={16} />}
-                  Enhance & Translate
-               </button>
-
-                {/* Output Fields */}
-                {(englishPrompt || isEnhancing) && (
-                    <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-                        <div className="space-y-2">
-                           <label className="text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
-                                Enhanced Prompt
-                           </label>
-                           <div className="bg-elevated border border-primary/20 rounded-xl p-4 text-sm text-main font-mono leading-relaxed shadow-inner">
-                              {englishPrompt || "AI is thinking..."}
-                           </div>
-                        </div>
-                        <div className="space-y-2">
-                           <label className="text-xs font-semibold text-muted uppercase tracking-wider">Translation</label>
-                           <div className="bg-surface border border-border/10 rounded-xl p-4 text-sm text-muted shadow-inner">
-                              {chinesePrompt || "Translating..."}
-                           </div>
-                        </div>
-                    </div>
-                )}
             </div>
             
             <div className="pt-6 mt-6 border-t border-border/10">
-                <button 
-                onClick={handleGenerate}
-                disabled={(!baseIdea && !englishPrompt) || isGenerating}
-                className="w-full py-4 bg-main hover:opacity-90 text-page rounded-xl font-bold text-base shadow-[0_0_20px_rgba(0,0,0,0.1)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:shadow-none"
-                >
-                {isGenerating ? <Loader2 className="animate-spin" /> : <ImageIcon />}
-                Generate Preview
-                </button>
+                {mode === 'ai' ? (
+                     <button 
+                        onClick={handleGenerate}
+                        disabled={(!baseIdea && !englishPrompt) || isGenerating}
+                        className="w-full py-4 bg-main hover:opacity-90 text-page rounded-xl font-bold text-base shadow-[0_0_20px_rgba(0,0,0,0.1)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:shadow-none"
+                    >
+                        {isGenerating ? <Loader2 className="animate-spin" /> : <ImageIcon />}
+                        生成预览图
+                    </button>
+                ) : (
+                    <button 
+                         // No generate step for manual, acts as save trigger essentially, but we use save button on right
+                         disabled={true} 
+                         className="w-full py-4 bg-surface text-muted rounded-xl font-medium text-sm border border-border/10 flex items-center justify-center gap-2 cursor-not-allowed"
+                     >
+                         <Check size={16} />
+                         图片已就绪
+                     </button>
+                )}
+               
             </div>
           </div>
         </div>
@@ -249,8 +335,14 @@ const CreatePrompt: React.FC<CreatePromptProps> = ({
                             <img src={generatedImage} alt="Generated" className="max-w-full h-auto object-contain" />
                         </div>
                         <div className="flex gap-4 w-full max-w-sm">
-                            <button onClick={onCancel} className="flex-1 py-3 bg-surface text-muted rounded-xl font-medium hover:bg-elevated hover:text-main transition-colors border border-border/10">Discard</button>
-                            <button onClick={handleSave} className="flex-1 py-3 bg-primary text-white rounded-xl font-medium hover:opacity-90 transition-colors shadow-lg shadow-primary/20">Save</button>
+                            <button onClick={onCancel} className="flex-1 py-3 bg-surface text-muted rounded-xl font-medium hover:bg-elevated hover:text-main transition-colors border border-border/10">丢弃</button>
+                            <button 
+                                onClick={handleSave} 
+                                disabled={mode === 'manual' && !baseIdea} // Require title for manual
+                                className="flex-1 py-3 bg-primary text-white rounded-xl font-medium hover:opacity-90 transition-colors shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                保存到画廊
+                            </button>
                         </div>
                     </div>
                  ) : (
@@ -258,7 +350,9 @@ const CreatePrompt: React.FC<CreatePromptProps> = ({
                         <div className="w-20 h-20 bg-surface rounded-full flex items-center justify-center mx-auto border border-border/10 shadow-inner">
                             {isGenerating ? <Loader2 className="animate-spin text-primary" size={32} /> : <ImageIcon className="text-muted" size={32} />}
                         </div>
-                        <p className="text-muted font-medium tracking-wide">Preview Canvas</p>
+                        <p className="text-muted font-medium tracking-wide">
+                            {mode === 'ai' ? '预览画布' : '请先上传图片'}
+                        </p>
                     </div>
                  )}
             </div>
@@ -271,7 +365,7 @@ const CreatePrompt: React.FC<CreatePromptProps> = ({
            <div className="bg-elevated border border-border/10 rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
               <div className="p-4 border-b border-border/10 flex justify-between items-center">
                  <h3 className="font-semibold text-main text-sm">
-                   Manage {manageMode === 'style' ? 'Styles' : 'Ratios'}
+                   管理 {manageMode === 'style' ? '风格' : '比例'}
                  </h3>
                  <button onClick={() => setManageMode(null)} className="text-muted hover:text-main"><X size={16} /></button>
               </div>
@@ -291,18 +385,18 @@ const CreatePrompt: React.FC<CreatePromptProps> = ({
                  <input 
                     value={newItemValue}
                     onChange={(e) => setNewItemValue(e.target.value)}
-                    placeholder="New value..."
+                    placeholder="新值..."
                     className="w-full bg-page border border-border/10 rounded-lg px-3 py-2 text-sm text-main outline-none focus:border-primary"
                  />
                  {manageMode === 'ratio' && (
                      <input 
                         value={newItemLabel}
                         onChange={(e) => setNewItemLabel(e.target.value)}
-                        placeholder="Label (e.g. Ultrawide)..."
+                        placeholder="显示标签 (如：超宽屏)..."
                         className="w-full bg-page border border-border/10 rounded-lg px-3 py-2 text-sm text-main outline-none focus:border-primary"
                      />
                  )}
-                 <button onClick={handleAddItem} className="w-full py-2 bg-primary hover:opacity-90 text-white rounded-lg text-sm font-medium">Add Item</button>
+                 <button onClick={handleAddItem} className="w-full py-2 bg-primary hover:opacity-90 text-white rounded-lg text-sm font-medium">添加</button>
               </div>
            </div>
         </div>

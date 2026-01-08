@@ -69,9 +69,9 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, forceOpen = 
 
         <div className="p-8 space-y-6">
             <div className="text-center space-y-2">
-                <h2 className="text-xl font-bold text-main">Authenticate Neural Engine</h2>
+                <h2 className="text-xl font-bold text-main">接入神经网络引擎</h2>
                 <p className="text-sm text-muted">
-                    To enable AI generation features on your private server, please provide a valid Google Gemini API Key.
+                    为了启用您的私人 AI 生成与润色服务，请配置有效的 Google Gemini API Key。
                 </p>
             </div>
 
@@ -97,7 +97,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, forceOpen = 
 
                 <div className="flex items-center gap-2 text-[10px] text-muted bg-surface/50 p-3 rounded-lg border border-border/5">
                     <ShieldCheck size={12} className="text-green-500" />
-                    <span>Key is stored securely in your browser's LocalStorage.</span>
+                    <span>密钥将安全存储于浏览器本地 (LocalStorage)，不会上传至服务器。</span>
                 </div>
             </div>
 
@@ -107,7 +107,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, forceOpen = 
                         onClick={handleClear}
                         className="px-4 py-3 rounded-xl text-xs font-medium text-muted hover:text-red-400 hover:bg-red-500/10 transition-colors"
                     >
-                        Clear
+                        清除
                     </button>
                 )}
                 <button 
@@ -124,11 +124,11 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, forceOpen = 
                     ) : isSaved ? (
                         <>
                             <ShieldCheck size={16} />
-                            Verified
+                            已验证
                         </>
                     ) : (
                         <>
-                            Connect
+                            连接
                             <ChevronRight size={16} />
                         </>
                     )}
@@ -138,7 +138,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, forceOpen = 
             <div className="text-center">
                  <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-[10px] text-muted hover:text-primary hover:underline transition-colors flex items-center justify-center gap-1">
                     <Server size={10} />
-                    Get a Gemini API Key
+                    获取 Gemini API Key
                  </a>
             </div>
         </div>

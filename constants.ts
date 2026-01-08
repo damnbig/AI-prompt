@@ -1,32 +1,33 @@
 import { Category, PromptData, ModifierCategory, RatioOption, Theme } from './types';
 
 export const CATEGORIES: Category[] = [
-  { id: 'all', label: '全部', value: 'all' },
-  { id: 'photorealistic', label: '真实感', value: 'photorealistic' },
-  { id: 'anime', label: '动漫 & 漫画', value: 'anime' },
+  { id: 'all', label: '全部灵感', value: 'all' },
+  { id: 'favorites', label: '⭐ 我的收藏', value: 'favorites' }, // Added Favorites Filter
+  { id: 'photorealistic', label: '真实感摄影', value: 'photorealistic' },
+  { id: 'anime', label: '二次元 & 动漫', value: 'anime' },
   { id: 'cyberpunk', label: '赛博朋克', value: 'cyberpunk' },
-  { id: 'fantasy', label: '奇幻艺术', value: 'fantasy' },
+  { id: 'fantasy', label: '奇幻史诗', value: 'fantasy' },
   { id: '3d', label: '3D 渲染', value: '3d' },
-  { id: 'abstract', label: '抽象派', value: 'abstract' },
+  { id: 'abstract', label: '抽象艺术', value: 'abstract' },
 ];
 
 export const DEFAULT_STYLES: string[] = [
-  "Photorealistic",
-  "Anime",
-  "Cyberpunk",
-  "Oil Painting",
-  "3D Render",
-  "Vector Art",
-  "Watercolor",
-  "Sketch"
+  "真实感摄影 (Photorealistic)",
+  "日系动漫 (Anime)",
+  "赛博朋克 (Cyberpunk)",
+  "厚涂油画 (Oil Painting)",
+  "3D 渲染 (3D Render)",
+  "矢量插画 (Vector Art)",
+  "水彩画 (Watercolor)",
+  "素描手绘 (Sketch)"
 ];
 
 export const DEFAULT_RATIOS: RatioOption[] = [
-  { label: "Square (1:1)", value: "1:1" },
-  { label: "Landscape (16:9)", value: "16:9" },
-  { label: "Portrait (9:16)", value: "9:16" },
-  { label: "Portrait (3:4)", value: "3:4" },
-  { label: "Landscape (4:3)", value: "4:3" }
+  { label: "正方形 (1:1)", value: "1:1" },
+  { label: "风景宽屏 (16:9)", value: "16:9" },
+  { label: "手机竖屏 (9:16)", value: "9:16" },
+  { label: "人像构图 (3:4)", value: "3:4" },
+  { label: "传统画幅 (4:3)", value: "4:3" }
 ];
 
 export const INITIAL_MODIFIERS: ModifierCategory[] = [
@@ -44,10 +45,10 @@ export const INITIAL_MODIFIERS: ModifierCategory[] = [
   },
   {
     id: 'lighting',
-    name: '💡 灯光与氛围 (Lighting)',
+    name: '💡 光影氛围 (Lighting)',
     modifiers: [
-      { id: '1', zh: '电影光效', en: 'Cinematic Lighting' },
-      { id: '2', zh: '体积光/丁达尔效应', en: 'Volumetric Lighting' },
+      { id: '1', zh: '电影级布光', en: 'Cinematic Lighting' },
+      { id: '2', zh: '丁达尔效应/体积光', en: 'Volumetric Lighting' },
       { id: '3', zh: '生物发光', en: 'Bioluminescent' },
       { id: '4', zh: '黄金时刻', en: 'Golden Hour' },
       { id: '5', zh: '赛博霓虹', en: 'Neon Lights' }
@@ -55,23 +56,23 @@ export const INITIAL_MODIFIERS: ModifierCategory[] = [
   },
   {
     id: 'camera',
-    name: '📷 相机与镜头 (Camera)',
+    name: '📷 镜头语言 (Camera)',
     modifiers: [
-      { id: '1', zh: '广角镜头', en: 'Wide Angle' },
-      { id: '2', zh: '微距摄影', en: 'Macro Photography' },
+      { id: '1', zh: '超广角', en: 'Wide Angle' },
+      { id: '2', zh: '微距特写', en: 'Macro Photography' },
       { id: '3', zh: '鱼眼镜头', en: 'Fisheye Lens' },
-      { id: '4', zh: '景深/背景虚化', en: 'Depth of Field' },
-      { id: '5', zh: '航拍视角', en: 'Aerial View' }
+      { id: '4', zh: '浅景深/虚化', en: 'Depth of Field' },
+      { id: '5', zh: '上帝视角', en: 'Aerial View' }
     ]
   },
   {
     id: 'composition',
-    name: '📐 构图 (Composition)',
+    name: '📐 构图法则 (Composition)',
     modifiers: [
       { id: '1', zh: '对称构图', en: 'Symmetrical' },
-      { id: '2', zh: '极简构图', en: 'Minimalist Composition' },
-      { id: '3', zh: '引导线', en: 'Leading Lines' },
-      { id: '4', zh: '中心构图', en: 'Centered' }
+      { id: '2', zh: '极简留白', en: 'Minimalist Composition' },
+      { id: '3', zh: '视觉引导线', en: 'Leading Lines' },
+      { id: '4', zh: '居中构图', en: 'Centered' }
     ]
   }
 ];
@@ -80,7 +81,7 @@ export const INITIAL_MODIFIERS: ModifierCategory[] = [
 export const THEMES: Theme[] = [
   { 
     id: 'pro-dark', 
-    name: 'Pro Dark', 
+    name: '暗夜极客', 
     colors: {
       page: '0 0 0',          // Pure Black
       surface: '24 24 27',    // Zinc 900
@@ -93,7 +94,7 @@ export const THEMES: Theme[] = [
   },
   { 
     id: 'snow-white', 
-    name: 'Snow White', 
+    name: '雪域白', 
     colors: {
       page: '245 245 247',    // Apple Off-White
       surface: '255 255 255', // Pure White
@@ -106,7 +107,7 @@ export const THEMES: Theme[] = [
   },
   { 
     id: 'titanium', 
-    name: 'Natural', 
+    name: '自然钛', 
     colors: {
       page: '142 142 147',    // Warm Grey Base
       surface: '66 66 69',    // Darker Metallic
@@ -128,6 +129,7 @@ export const INITIAL_PROMPTS: PromptData[] = [
     tags: ['cyberpunk', 'scifi', 'character', 'neon'],
     imageUrl: 'https://picsum.photos/seed/cyberpunk/800/800',
     likes: 124,
+    isBookmarked: true,
     author: 'NeoArtist',
     createdAt: Date.now()
   },
@@ -139,6 +141,7 @@ export const INITIAL_PROMPTS: PromptData[] = [
     tags: ['fantasy', 'nature', 'magic', 'ethereal'],
     imageUrl: 'https://picsum.photos/seed/forest/800/1200',
     likes: 89,
+    isBookmarked: false,
     author: 'NatureLover',
     createdAt: Date.now() - 100000
   },
@@ -150,6 +153,7 @@ export const INITIAL_PROMPTS: PromptData[] = [
     tags: ['3d', 'isometric', 'retro', 'interior'],
     imageUrl: 'https://picsum.photos/seed/room/1200/800',
     likes: 256,
+    isBookmarked: false,
     author: 'VoxelMaster',
     createdAt: Date.now() - 200000
   }
